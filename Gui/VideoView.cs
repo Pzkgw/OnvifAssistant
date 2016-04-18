@@ -6,7 +6,7 @@ using System.Linq;
 using System.Text;
 using System.Windows.Forms;
 
-namespace Network_Video_Recorder01.Gui
+namespace OnvifAssistant.Gui
 {
     class VideoView : VideoViewerWF
     {

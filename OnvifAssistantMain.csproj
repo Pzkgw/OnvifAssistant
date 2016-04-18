@@ -89,7 +89,6 @@
       <DesignTime>True</DesignTime>
       <DependentUpon>Resources.resx</DependentUpon>
     </Compile>
-    <Compile Include="Utils\QueryServer.cs" />
     <EmbeddedResource Include="FormOnvif.resx">
       <DependentUpon>FormOnvif.cs</DependentUpon>
     </EmbeddedResource>
@@ -117,6 +116,9 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="Resources\img_play.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <Folder Include="Utils\" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <PropertyGroup>

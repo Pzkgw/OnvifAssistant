@@ -3,7 +3,7 @@ using System;
 using System.Collections.Generic;
 using System.Windows;
 
-namespace Network_Video_Recorder01.Cam
+namespace OnvifAssistant.Cam
 {
     class OnDiscover
     {

@@ -8,7 +8,7 @@
 // </auto-generated>
 //------------------------------------------------------------------------------
 
-namespace Network_Video_Recorder01.Properties {
+namespace OnvifAssistant.Properties {
     using System;
     
     

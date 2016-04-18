@@ -1,19 +1,18 @@
 ﻿
-
-//Balarii Ozeky'ste
 using Ozeki.Camera;
 using Ozeki.Media;
 
 using System;
 using System.Windows.Forms;
-using Network_Video_Recorder01.Cam;
 using System.Collections.Generic;
 using System.Windows.Threading;
-using Network_Video_Recorder01.Gui;
 using System.Drawing;
 using System.Windows;
+using OnvifAssistant.Cam;
+using OnvifAssistant.Gui;
+using System.Text;
 
-namespace Network_Video_Recorder01
+namespace OnvifAssistant
 {
     public partial class FormOnvif : Form
     {
@@ -26,11 +25,14 @@ namespace Network_Video_Recorder01
 
         private readonly  Dispatcher _logDispatch;
 
-        private bool playCamVideo;
+        private bool videoIsOn, recordStarted;
 
-        //VideoFileWriter writer;
+        private MPEG4Recorder _recorder;//VideoFileWriter writer;
 
-        private MPEG4Recorder _recorder;
+        private readonly string
+            recordTxtStart = "Recording" + Environment.NewLine + "Start",
+            recordTxtStop = "Stop" + Environment.NewLine + "Recording",
+            snapshotTxt = "Save" + Environment.NewLine + "Snapshot";
 
         int tt = 0;
 
@@ -38,6 +40,8 @@ namespace Network_Video_Recorder01
         {
             InitializeComponent();
             this.Icon = Icon.FromHandle(Properties.Resources.img_play1.GetHicon());
+            btnRecord.Text = recordTxtStart;
+            btnSnapshot.Text = snapshotTxt;
 
             _connector = new MediaConnector();
             _imgHandler = new ImgHandler();
@@ -64,20 +68,14 @@ namespace Network_Video_Recorder01
             if (btnPlay.Image == null)
             {
                 btnPlay_Click(null, null);
-                InvokeGuiThread(new delegateEnableControl(ControlEnable), btnPlay, true);
+
+                InvokeGuiThread(new delegatePrintText(PrintText), "VVVVVVVVVVIDEOOOOOOOO");
             }
 
             if (tt == 8)
             {
                 Discover();//InvokeGuiThread( new delegateToGUI(Discover));
-                CaptureStart();
             }
-
-            if (tt == 10)
-            {
-                
-            }
-
 
             if(tt<512) ++tt;
 
@@ -124,6 +122,7 @@ namespace Network_Video_Recorder01
         private void ControlEnable(Control ctrl, bool enabled)
         {
             ctrl.Enabled = enabled;
+            ctrl.Visible = enabled;
         }
 
         #endregion GUI Events
@@ -183,28 +182,30 @@ namespace Network_Video_Recorder01
 
         private void btnPlay_Click(object sender, EventArgs e)
         {
-            if (playCamVideo)
+            if (videoIsOn)
             {
                 _videoView.Stop();
                 btnPlay.Image = new Bitmap(Properties.Resources.img_play1, btnPlay.Size);
-                playCamVideo = false;
-
-
-                CaptureStop();
-
+                videoIsOn = false;
+                
             }
             else
             {
                 _videoView.Start();
                 btnPlay.Image = new Bitmap(Properties.Resources.silver_pause_sign, btnPlay.Size);
-                playCamVideo = true;
+                videoIsOn = true;
+
+
+
+                labelDeviceInfo.Text = GetDeviceInfo();
+
             }
 
-            
+            Delegate pointGuiControlsEnable = new delegateEnableControl(ControlEnable);
+            foreach (Control ctrl in new Control[] { btnRecord, btnSnapshot, groupBoxDeviceInfo })
+                InvokeGuiThread(pointGuiControlsEnable, ctrl, videoIsOn);
+
         }
-
-
-
 
 
 
@@ -216,7 +217,7 @@ namespace Network_Video_Recorder01
             var date = DateTime.Now.Year + "-" + DateTime.Now.Month + "-" + DateTime.Now.Day + "-" +
                         DateTime.Now.Hour + "-" + DateTime.Now.Minute + "-" + DateTime.Now.Second;
 
-            var currentpath = "c:\\"+date + ".mpeg4"; //AppDomain.CurrentDomain.BaseDirectory + date + ".mpeg4";
+            var currentpath = "c:\\" + date + ".mpeg4"; //AppDomain.CurrentDomain.BaseDirectory + date + ".mpeg4";
 
             _recorder = new MPEG4Recorder(currentpath);
             _recorder.MultiplexFinished += _recorder_MultiplexFinished;
@@ -237,6 +238,22 @@ namespace Network_Video_Recorder01
             _recorder.Dispose();
         }
 
+        private void btnRecord_Click(object sender, EventArgs e)
+        {
+            if (recordStarted)
+            {
+                CaptureStop();
+                btnRecord.Text = recordTxtStart;
+                recordStarted = false;
+            }
+            else
+            {
+                CaptureStart();
+                btnRecord.Text = recordTxtStop;
+                recordStarted = true;
+            }
+        }
+
 
         #endregion
 
@@ -249,7 +266,7 @@ namespace Network_Video_Recorder01
 
 
 
-        /*
+        
 
         private string GetDeviceInfo()
         {
@@ -273,7 +290,7 @@ namespace Network_Video_Recorder01
 
             return sb.ToString();
         }
- 
+ /*
         private void _camera_CameraStateChanged(object sender, CameraStateEventArgs e)
         {
             if (e.State == CameraState.Streaming)
